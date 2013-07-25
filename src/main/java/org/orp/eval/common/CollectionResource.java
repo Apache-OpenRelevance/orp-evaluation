@@ -14,5 +14,5 @@ public interface CollectionResource {
 	 * its description
 	 */
 	@Get
-	public Representation getCollection();
+	public Representation present();
 }

@@ -12,7 +12,7 @@ public interface ResultResource {
 	 * reciprocal rank, etc. And also the scoring model. 
 	 */
 	@Get
-	public Representation getResult();
+	public Representation summary();
 	
 	/**
 	 * 
@@ -22,6 +22,6 @@ public interface ResultResource {
 	 * @return all the measurements and their IDs, names and descriptions.
 	 */
 	@Post
-	public Representation getMetrics(Representation data);
+	public Representation execute(Representation data);
 	
 }

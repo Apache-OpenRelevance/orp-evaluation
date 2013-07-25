@@ -2,6 +2,7 @@ package org.orp.eval.common;
 
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
+import org.restlet.resource.Post;
 
 public interface EvaluationResource {
 	/***
@@ -12,6 +13,9 @@ public interface EvaluationResource {
 	 */
 	
 	@Get
-	public Representation getSummary();
+	public Representation present();
+	
+	@Post
+	public Representation execute();
 	
 }

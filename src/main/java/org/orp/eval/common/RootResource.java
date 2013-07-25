@@ -10,6 +10,6 @@ public interface RootResource {
 	 * @return the homepage of Open Relevance Project
 	 */
 	@Get
-	public Representation getHomepage();
+	public Representation present();
 }
 
