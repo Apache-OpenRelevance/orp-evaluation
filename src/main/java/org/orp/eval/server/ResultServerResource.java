@@ -1,6 +1,7 @@
 package org.orp.eval.server;
 
 import org.orp.eval.common.ResultResource;
+import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.ext.wadl.WadlServerResource;
 import org.restlet.representation.Representation;
 
@@ -11,7 +12,8 @@ public class ResultServerResource extends WadlServerResource implements ResultRe
 		return null;
 	}
 
-	public Representation execute(Representation data) {
+
+	public Representation execute(JsonRepresentation data) {
 		return null;
 	}
 

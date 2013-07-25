@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.orp.evaluation</groupId>
   <artifactId>org.orp.evaluation</artifactId>
-  <name>eval</name>
+  <name>evaluation</name>
   <version>0.0.1-SNAPSHOT</version>
  
   <url>http://maven.apache.org</url>
@@ -91,7 +91,7 @@
     </dependency>
     
     <dependency>
-		<groupId>org.apache.solr</groupId>  <name>eval</name>
+		<groupId>org.apache.solr</groupId>  
 		<artifactId>solr-solrj</artifactId>
 		<version>4.3.1</version>
 	</dependency>
@@ -109,7 +109,7 @@
 	</dependency>
     
     <dependency>
-    	<groupId>junit</groupId>  <name>eval</name>
+    	<groupId>junit</groupId> 
     	<artifactId>junit</artifactId>
     	<version>4.0</version>
     	<scope>test</scope>

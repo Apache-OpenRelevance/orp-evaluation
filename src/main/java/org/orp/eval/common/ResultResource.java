@@ -1,5 +1,6 @@
 package org.orp.eval.common;
 
+import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
 import org.restlet.resource.Post;
@@ -8,20 +9,22 @@ public interface ResultResource {
 	
 	/**
 	 * 
-	 * @return scores by common measurements such as precision/recall, mean
-	 * reciprocal rank, etc. And also the scoring model. 
+	 * @return score by required measurement and scoring model.
 	 */
 	@Get
 	public Representation summary();
 	
 	/**
 	 * 
-	 * @param accept a JSON/XML document indicating showing all the available
-	 * measurements.
+	 * @param commands, including:
+	 * 1.score: get scores by different measurements. A data block like {"score":{
+	 * "measure":"[measureName]"}} should follow the command. If scores by all measurements
+	 * are needed, type in "all" instead of name of measurement. 
 	 * 
-	 * @return all the measurements and their IDs, names and descriptions.
+	 * 2.download: download a result report.
+	 * @return 
 	 */
 	@Post
-	public Representation execute(Representation data);
+	public Representation execute(JsonRepresentation data);
 	
 }
