@@ -18,6 +18,14 @@ public class JsonUtils {
 		return value;
 	}
 	
+	public static String getCommand(JsonRepresentation entity) 
+			throws JsonParseException, JsonMappingException, IOException{
+		Map<String, Object> data = toMap(entity);
+		if(data.size() != 1)
+			throw new JsonParseException("Invalid command.", null);
+		return data.keySet().iterator().next();
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> toMap(JsonRepresentation entity) 
 			throws JsonParseException, JsonMappingException, IOException{
