@@ -1,5 +1,10 @@
 package org.orp.eval.common;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
@@ -14,12 +19,14 @@ public interface EvaluationsResource {
 	 * results URIs. 
 	 */
 	@Get
-	public Representation list();
+	public Representation list()
+		throws SQLException;
 	
 	/**
 	 * @param host URL, test collection ID, measurement, tester's name
 	 * @return evaluation ID, timestamp, URI, test collection, corpus 
 	 */
 	@Post
-	public Representation run(JsonRepresentation entity);
+	public Representation run(JsonRepresentation entity) 
+			throws JsonParseException, JsonMappingException, IOException, SQLException;
 }

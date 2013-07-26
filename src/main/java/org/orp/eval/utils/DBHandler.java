@@ -14,7 +14,8 @@ public interface DBHandler {
 	 * 
 	 * This method is used for determining if a table exists 
 	 */
-	public boolean exist(String tabName);	
+	public boolean exist(String tabName)
+			throws SQLException;	
 	
 	/**
 	 * 
@@ -26,7 +27,8 @@ public interface DBHandler {
 	 * 
 	 * This method is used for creating a table
 	 */
-	public void createTable(String createStmt);
+	public void createTable(String createStmt)
+			throws SQLException;
 	
 	/**
 	 * 
@@ -37,7 +39,8 @@ public interface DBHandler {
 	 * Map<String, Object> stands for a row and a set stands for the whole table. 
 	 */
 	
-	public Set<Map<String, Object>> selectAll(String tabName);
+	public Set<Map<String, Object>> selectAll(String tabName)
+		throws SQLException;
 	
 	/**
 	 * 
@@ -50,7 +53,8 @@ public interface DBHandler {
 	 * Since this method may involve user input, prepared SQL statement is required. 
 	 */
 	
-	public Map<String, Object> selectAllById(String tabName, String id);
+	public Map<String, Object> selectAllById(String tabName, String id)
+			throws SQLException;
 	/**
 	 * 
 	 * @param a table's name
@@ -65,7 +69,8 @@ public interface DBHandler {
 	 * Since this method may involves user input, prepared SQL statement is required.  
 	 */
 	
-	public Set<Map<String, Object>> select(String tabName, Map<String, Object> conditions);
+	public Set<Map<String, Object>> select(String tabName, Map<String, Object> conditions)
+			throws SQLException;
 	
 	/**
 	 *
@@ -76,7 +81,7 @@ public interface DBHandler {
 	 * 
 	 * Since this method may involves user input, prepared SQL statement is required. 	
 	 */
-	public void insert(String tabName, Map<String, Object> values);
+	public void insert(String tabName, Map<String, Object> values) throws SQLException;
 	
 	/**
 	 * 
@@ -84,7 +89,8 @@ public interface DBHandler {
 	 * @param values
 	 * @param id
 	 */
-	public void updateById(String tabName, Map<String, Object> values, String id);
+	public void updateById(String tabName, Map<String, Object> values, String id)
+		throws SQLException;
 	
 	/**
 	 * 
@@ -96,7 +102,8 @@ public interface DBHandler {
 	 * 
 	 * Since this method may involves user input, prepared SQL statement is required. 
 	 */
-	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds);
+	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds)
+		throws SQLException;
 	
 	/**
 	 * 
@@ -107,7 +114,8 @@ public interface DBHandler {
 	 * 
 	 * Since this method may involves user input, prepared SQL statement is required. 	
 	 */
-	public void deleteById(String tabName, String id);
+	public void deleteById(String tabName, String id)
+		throws SQLException;
 	
 	/**
 	 * 
@@ -121,7 +129,8 @@ public interface DBHandler {
 	 * 
 	 * Since this method may involves user input, prepared SQL statement is required.
 	 */
-	public void delete(String tabName, Map<String, Object> conditions);
+	public void delete(String tabName, Map<String, Object> conditions)
+		throws SQLException;
 	
 	/**
 	 * 
@@ -146,7 +155,7 @@ public interface DBHandler {
 	/**
 	 * This method is used for closing resources and connections.
 	 */
-	public void clean();
+	public void clean() throws SQLException;
 	
 	/**
 	 * 

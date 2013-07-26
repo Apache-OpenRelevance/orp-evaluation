@@ -1,5 +1,10 @@
 package org.orp.eval.common;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
@@ -14,7 +19,8 @@ public interface EvaluationResource {
 	 */
 	
 	@Get
-	public Representation present();
+	public Representation present()
+		throws SQLException;
 	
 	/**
 	 * @param command-data combinations, including:
@@ -31,9 +37,10 @@ public interface EvaluationResource {
 	 * @return 
 	 * 1. re-run: an updated summary of the evaluation, as is returned by calling GET
 	 * method. 
-	 * 2. check-progress: evaluation status. 
+	 * 2. check-in: evaluation status. 
 	 */
-	@Post
-	public Representation execute(JsonRepresentation entity);
+	@Post("json:json")
+	public Representation execute(JsonRepresentation entity)
+			throws JsonParseException, JsonMappingException, IOException, SQLException;
 	
 }

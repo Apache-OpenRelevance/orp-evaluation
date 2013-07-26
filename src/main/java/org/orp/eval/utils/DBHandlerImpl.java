@@ -36,56 +36,46 @@ public class DBHandlerImpl implements DBHandler{
 		try{
 			if(dbType.equals("sqlite"))
 				Class.forName("org.sqlite.JDBC");
-			else{
+			else
 				throw new RuntimeException("Not support " + dbType);
-			}
-			 conn = DriverManager.getConnection(dbinfo);
-		}catch(SQLException se){
-			se.printStackTrace();
+				conn = DriverManager.getConnection(dbinfo);
 		}catch(ClassNotFoundException ce){
 			ce.printStackTrace();
+		}catch(SQLException se){
+			se.printStackTrace();
 		}
 		
 		return new DBHandlerImpl(conn);
 	}
-	public boolean exist(String tabName){
-		try {
-			return c.getMetaData().getTables(null, null, tabName, null).next() ? true : false;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		return false;
+	public boolean exist(String tabName) 
+			throws SQLException{
+		return c.getMetaData().getTables(null, null, tabName, null).next() ? true : false;
 	}
-	public void createTable(String schema){
-		try {
+	public void createTable(String schema) 
+			throws SQLException{
 			stmt.executeUpdate(schema);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 	}
-	public Set<Map<String, Object>> selectAll(String tabName){
+	public Set<Map<String, Object>> selectAll(String tabName) 
+			throws SQLException{
 		Set<Map<String, Object>> result = null;
-		try{
-			 ResultSet rs = stmt.executeQuery("SELECT * FROM " + tabName);
-			 result = toResultSet(rs);
-			 clean();
-		}catch(SQLException se){
-			se.printStackTrace();
-		}
+		ResultSet rs = stmt.executeQuery("SELECT * FROM " + tabName);
+		result = toResultSet(rs);
+		clean();
 		return result;
 	}
 	
-	public Map<String, Object> selectAllById(String tabName, String id){
+	public Map<String, Object> selectAllById(String tabName, String id) 
+			throws SQLException{
 		Map<String, Object> cond = new HashMap<String, Object>();
 		cond.put("id", id);
 		Map<String, Object> result = null;
-		for(Map<String,Object> key : select("COLLECTION", cond))
+		for(Map<String,Object> key : select(tabName, cond))
 			result = key;
 		return result;
 	}
 	
-	public Set<Map<String, Object>> select(String tabName, Map<String, Object> conditions){
+	public Set<Map<String, Object>> select(String tabName, Map<String, Object> conditions)
+			throws SQLException{
 		StringBuilder query = new StringBuilder("SELECT * FROM " + tabName + " WHERE ");
 		Map<Integer, Object> orderMap = new HashMap<Integer, Object>();
 		int count = 1;
@@ -94,19 +84,12 @@ public class DBHandlerImpl implements DBHandler{
 			orderMap.put(count ++, conditions.get(key));
 		}
 		query.replace(query.length() - 5, query.length(), "");
-		Set<Map<String, Object>> result = null;
-		try {
-			result = toResultSet(
+		return toResultSet(
 					setPreparedParams(query.toString(), tabName, orderMap).executeQuery());
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		return result;
 	}
 	
-	public void insert(String tabName, Map<String, Object> values){
-		try {
+	public void insert(String tabName, Map<String, Object> values) 
+			throws SQLException{
 			StringBuilder query = new StringBuilder(
 					"INSERT INTO " + tabName + "(");
 			Map<Integer, Object> orderMap = new HashMap<Integer, Object>();
@@ -120,19 +103,18 @@ public class DBHandlerImpl implements DBHandler{
 				query.append("?,");
 			query.replace(query.length() - 1, query.length(), ")");
 			setPreparedParams(query.toString(), tabName, orderMap).executeUpdate();
-		} catch(SQLException se) {
-			se.printStackTrace();
-		}
 		
 	}
 	
-	public void updateById(String tabName, Map<String, Object> values, String id){
+	public void updateById(String tabName, Map<String, Object> values, String id) 
+			throws SQLException{
 		Map<String, Object> cond = new HashMap<String, Object>(1);
 		cond.put("id", id);
 		update(tabName, values, cond);
 	}
 	
-	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds){
+	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds) 
+			throws SQLException{
 		StringBuilder query = new StringBuilder("UPDATE " + tabName + " SET ");
 		Map<Integer, Object> orderValues = new HashMap<Integer, Object>();
 		int count = 1;
@@ -146,34 +128,28 @@ public class DBHandlerImpl implements DBHandler{
 			orderValues.put(count ++, conds.get(key));
 		}
 		query.replace(query.length() - 4, query.length(), "");
-		try{
-			setPreparedParams(query.toString(),tabName, orderValues).executeUpdate();
-		}catch(SQLException se){
-			se.printStackTrace();
-		}
+		setPreparedParams(query.toString(),tabName, orderValues).executeUpdate();
 	}
 	
-	public void deleteById(String tabName, String id){
+	public void deleteById(String tabName, String id) 
+			throws SQLException{
 		Map<String, Object> cond = new HashMap<String, Object>();
 		cond.put("id", id);
 		delete(tabName, cond);
 	}
 	
-	public void delete(String tabName, Map<String, Object> conditions){
-		try{	
-			StringBuilder query = new StringBuilder(
-					"DELETE FROM " + tabName + " WHERE ");
-			Map<Integer, Object> orderMap = new HashMap<Integer, Object>();
-			int count = 1;
-			for(String key : conditions.keySet()){
-				query.append(key.toUpperCase() + "=? AND ");
-				orderMap.put(count ++, conditions.get(key));
-			}
-			query.replace(query.length() - 5, query.length(), "");
-			setPreparedParams(query.toString(), tabName, orderMap).executeUpdate();
-		}catch(SQLException se){
-			se.printStackTrace();
+	public void delete(String tabName, Map<String, Object> conditions) 
+			throws SQLException{
+		StringBuilder query = new StringBuilder(
+				"DELETE FROM " + tabName + " WHERE ");
+		Map<Integer, Object> orderMap = new HashMap<Integer, Object>();
+		int count = 1;
+		for(String key : conditions.keySet()){
+			query.append(key.toUpperCase() + "=? AND ");
+			orderMap.put(count ++, conditions.get(key));
 		}
+		query.replace(query.length() - 5, query.length(), "");
+		setPreparedParams(query.toString(), tabName, orderMap).executeUpdate();
 	}
 	
 	public Map<String, Integer> getTableInfo(String tabName) 
@@ -190,13 +166,10 @@ public class DBHandlerImpl implements DBHandler{
 		 return schema;
 	}
 	
-	public void clean(){
-		try {
-			stmt.close();
-			c.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+	public void clean()
+		throws SQLException{
+		stmt.close();
+		c.close();
 	}
 
 	public PreparedStatement setPreparedParams(String query, 

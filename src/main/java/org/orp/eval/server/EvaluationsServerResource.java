@@ -2,7 +2,10 @@ package org.orp.eval.server;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -28,26 +31,30 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 		handler = DBHandlerImpl.newHandler("jdbc:sqlite:db/evaluation.db");
 	}
 	
-	public Representation list() {
+	public Representation list() 
+			throws SQLException {
 		Set<Map<String, Object>> rs = handler.selectAll("EVALUATION");
+		if(rs.isEmpty())
+			return EvaluationUtils.message("No evaluation found.");
 		JSONArray evals = new JSONArray();
-		String prefix = getRequest().getReferrerRef().getIdentifier();
+		String prefix = getRequest().getResourceRef().getIdentifier();
 		for(Map<String, Object> key : rs){
 			key.put("uri", prefix + "/" + key.get("id"));
+			// TODO May check status of the evaluation
+			if(key.get("score") == null) key.put("score", "N/A");
 			evals.put(key);
 		}
-		Map<String, JSONArray> result = new HashMap<String, JSONArray>();
+		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("evaluations", evals);	
 		return new JsonRepresentation(result);
 	}
-
-	public Representation run(JsonRepresentation entity) {
-		String cmd = null;
-		try {
+	@SuppressWarnings("unchecked")
+	public Representation run(JsonRepresentation entity) 
+			throws JsonParseException, JsonMappingException, IOException, SQLException{
+			if(entity == null)
+				return EvaluationUtils.message("No data available.");
 			Map<String, Object> params = JsonUtils.toMap(entity);
-			@SuppressWarnings("unchecked")
-			Map<String, Object> data = (Map<String, Object>)params.get("evaluate");
-			cmd = params.keySet().iterator().next();
+			String cmd = params.keySet().iterator().next();
 			if(cmd.equals("evaluate")){
 				String id = UUID.randomUUID().toString().replaceAll("-", "");
 				String prefix = getRequest().getResourceRef().getIdentifier();
@@ -56,6 +63,10 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 				// TODO Get from Collection service.
 				String corpus = "N/A";
 				
+				//Get wanted values, trim the values and ignore noises
+				List<String> keys = Arrays.asList(new String[]{"host", "tester", "measurement", "collection_id"});
+				Map<String, Object> data = EvaluationUtils.extractValues(
+						(Map<String, Object>)params.get("evaluate"), keys);
 				data.put("id", id);
 				data.put("evaluate_time", timestamp);
 				data.put("corpus", corpus);
@@ -66,18 +77,23 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 				return new JsonRepresentation(data);
 			}else
 				return EvaluationUtils.message("Invalid Commands");
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
 	}
+	
+	@Override
+	public void doCatch(Throwable ex){
+		Throwable cause = ex.getCause();
+		if(cause instanceof JsonParseException)
+			System.err.print(cause.getClass().getName() + ": " + cause.getMessage());
+		if(cause instanceof IOException)
+			System.err.print(cause.getClass().getName() + ": " + cause.getMessage());
+		if(cause instanceof JsonMappingException)
+			System.err.print(cause.getClass().getName() + ": " + cause.getMessage());
+		if(cause instanceof SQLException)
+			System.err.print(cause.getClass().getName() + ": " + cause.getMessage());
+		
+		ex.printStackTrace();
+		
+	} 
 
 	
 }

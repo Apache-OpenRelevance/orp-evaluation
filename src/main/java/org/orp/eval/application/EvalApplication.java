@@ -1,5 +1,7 @@
 package org.orp.eval.application;
 
+import java.sql.SQLException;
+
 import org.orp.eval.server.CollectionServerResource;
 import org.orp.eval.server.EvaluationServerResource;
 import org.orp.eval.server.EvaluationsServerResource;
@@ -15,16 +17,17 @@ import org.restlet.routing.Router;
 
 public class EvalApplication extends WadlApplication{
 	
-	public EvalApplication(){
+	public EvalApplication() throws SQLException{
 		DBHandler handler = DBHandlerImpl.newHandler(
 				"jdbc:sqlite:db/evaluation.db");
 		if(!handler.exist("evaluation"))
 			handler.createTable("CREATE TABLE EVALUATION(" +
 					"ID CHAR(32) PRIMARY KEY NOT NULL," +
-					"HOST_URL VARCHAR(60) NOT NULL," +
-					"TESTER VARCHAR(20) NOT NULL DEFAULT 'ANONYMOUS'," +
+					"HOST VARCHAR(60) NOT NULL," +
+					"TESTER VARCHAR(20) NOT NULL DEFAULT \'ANONYMOUS\'," +
 					"MEASUREMENT VARCHAR(20) NOT NULL," +
 					"SCORE REAL," +
+					"SCORING_MODEL VARCHAR(20) NOT NULL DEFAULT \'TF-IDF\'," + 
 					"EVALUATE_TIME DATE NOT NULL," +
 					"CORPUS VARCHAR(20) NOT NULL," +
 					"COLLECTION_ID CHAR(32) NOT NULL)");

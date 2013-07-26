@@ -38,5 +38,18 @@ public class EvaluationUtils {
 		return pattern.format(date);
 	}
 	
-	
+	public static Map<String, Object> extractValues(Map<String, Object> raw, Iterable<String> keys){
+		Map<String, Object> values = new HashMap<String, Object>();
+		for(String k : keys){
+			if(!raw.containsKey(k)) continue;
+			Object v = raw.get(k);
+			if(v instanceof String){
+				String t = (String)v;
+				values.put(k, t.trim());
+			}else
+				values.put(k, v);
+		}
+			
+		return values;
+	}
 }
