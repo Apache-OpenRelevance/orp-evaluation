@@ -10,14 +10,15 @@ public interface EvaluationsResource {
 	/**
 	 * 
 	 * @return all the evaluations, with their IDs, timestamps, host URLs,  
-	 * measurements, scores, tester's name, test collection IDs, schema URIs, results URIs. 
+	 * measurements, scores, tester's name, test collection IDs, schema URIs, 
+	 * results URIs. 
 	 */
 	@Get
 	public Representation list();
 	
 	/**
 	 * @param host URL, test collection ID, measurement, tester's name
-	 * @return evaluation ID, timestamp, test collection, corpus, score 
+	 * @return evaluation ID, timestamp, URI, test collection, corpus 
 	 */
 	@Post
 	public Representation run(JsonRepresentation entity);

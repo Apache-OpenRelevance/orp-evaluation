@@ -15,7 +15,7 @@ public class EvalComponent extends Component{
 	}
 	
 	public EvalComponent(){
-		getServers().add(Protocol.HTTP, 8090);
+		getServers().add(Protocol.HTTP, 8112);
 		getDefaultHost().attachDefault(new EvalApplication());
 	}
 }

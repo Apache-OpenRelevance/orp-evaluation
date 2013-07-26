@@ -20,10 +20,14 @@ public class EvalApplication extends WadlApplication{
 				"jdbc:sqlite:db/evaluation.db");
 		if(!handler.exist("evaluation"))
 			handler.createTable("CREATE TABLE EVALUATION(" +
-					"ID VARCHAR(20) PRIMARY KEY NOT NULL," +
-					"URI VARCHAR(50) NOT NULL," +
-					"CREATE_TIME DATE NOT NULL," +
-					"CORPUS VARCHAR(20))");
+					"ID CHAR(32) PRIMARY KEY NOT NULL," +
+					"HOST_URL VARCHAR(60) NOT NULL," +
+					"TESTER VARCHAR(20) NOT NULL DEFAULT 'ANONYMOUS'," +
+					"MEASUREMENT VARCHAR(20) NOT NULL," +
+					"SCORE REAL," +
+					"EVALUATE_TIME DATE NOT NULL," +
+					"CORPUS VARCHAR(20) NOT NULL," +
+					"COLLECTION_ID CHAR(32) NOT NULL)");
 		handler.clean();
 	}
 	

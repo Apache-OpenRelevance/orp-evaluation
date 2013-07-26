@@ -2,6 +2,7 @@ package org.orp.eval.utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.restlet.ext.json.JsonRepresentation;
 
@@ -23,8 +24,13 @@ public class JsonUtilsTest extends TestCase {
 			root.put("cmd1", child1);
 			root.put("cmd2", child2);
 			
+			String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+			System.out.println(uuid.length());
+			
 			JsonRepresentation entity = new JsonRepresentation(root);
 			System.out.println(JsonUtils.getCommand(entity));
+			
+			
 		}catch(Exception e){
 		}
 	}
