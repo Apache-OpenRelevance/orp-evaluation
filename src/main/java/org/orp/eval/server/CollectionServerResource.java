@@ -10,8 +10,6 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 
 	@Get
 	public Representation present() {
-		// TODO Auto-generated method stub
 		return null;
 	}
-
 }
