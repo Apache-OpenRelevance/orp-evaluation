@@ -92,7 +92,6 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 			System.err.print(cause.getClass().getName() + ": " + cause.getMessage());
 		
 		ex.printStackTrace();
-		
 	} 
 
 	
