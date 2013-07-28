@@ -1,5 +1,6 @@
 package org.orp.eval.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -33,9 +34,16 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 	
 	public Representation list() 
 			throws SQLException {
+		/*
+		 * 1. Fetch evaluation info from DB 
+		 */
 		Set<Map<String, Object>> rs = handler.selectAll("EVALUATION");
 		if(rs.isEmpty())
 			return EvaluationUtils.message("No evaluation found.");
+		
+		/*
+		 * 2. Generate summary in JSON
+		 */
 		JSONArray evals = new JSONArray();
 		String prefix = getRequest().getResourceRef().getIdentifier();
 		for(Map<String, Object> key : rs){
@@ -46,6 +54,10 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 		}
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("evaluations", evals);	
+		
+		/*
+		 * 3. Return summary
+		 */
 		return new JsonRepresentation(result);
 	}
 	@SuppressWarnings("unchecked")
@@ -56,23 +68,72 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 			Map<String, Object> params = JsonUtils.toMap(entity);
 			String cmd = params.keySet().iterator().next();
 			if(cmd.equals("evaluate")){
-				String id = UUID.randomUUID().toString().replaceAll("-", "");
-				String prefix = getRequest().getResourceRef().getIdentifier();
-				String uri = prefix + "/" + id;
-				String timestamp = EvaluationUtils.dateFormat(new Date(System.currentTimeMillis()));
-				// TODO Get from Collection service.
-				String corpus = "N/A";
+				/*
+				 * 1. Check if the evaluation exists
+				 */
+				String id = null;
 				
 				//Get wanted values, trim the values and ignore noises
 				List<String> keys = Arrays.asList(new String[]{"host", "tester", "measurement", "collection_id"});
 				Map<String, Object> data = EvaluationUtils.extractValues(
 						(Map<String, Object>)params.get("evaluate"), keys);
-				data.put("id", id);
-				data.put("evaluate_time", timestamp);
-				data.put("corpus", corpus);
-				handler.insert("EVALUATION", data);
+				Map<String, Object> conds = new HashMap<String, Object>();
+				conds.putAll(data);
+				conds.remove("tester");
+				Set<Map<String, Object>> rs = handler.select("EVALUATION", conds);
 				
-				data.put("uri", uri);
+				/*
+				 * 2.Check if there is a similar evaluation being done. 
+				 */
+				if(rs.isEmpty()){
+					/*
+					 * 3(1). If not, parse input data and generate evaluation info and update to DB
+					 */
+					id = UUID.randomUUID().toString().replaceAll("-", "");
+					// TODO Get corpus info from Collection service.
+					String corpus = "N/A";
+					
+					data.put("id", id);
+					data.put("evaluate_time", EvaluationUtils.dateFormat(new Date(System.currentTimeMillis())));
+					data.put("corpus", corpus);
+					handler.insert("EVALUATION", data);
+				}else{
+					/*
+					 * 3(2). If yes, re-run the evaluation as nothing is changed.
+					 */
+					String tester = (String)data.get("tester");
+					data = rs.iterator().next();
+					data.put("tester", tester);
+					data.put("evaluate_time", EvaluationUtils.dateFormat(new Date(System.currentTimeMillis())));
+					id = (String)data.get("id");
+					handler.updateById("EVALUATION", data, id);
+				}
+				
+				data.put("uri", getRequest().getResourceRef().getIdentifier() + "/" + id);
+
+				/*
+				 * 3. Create repository
+				 */
+				File repo = new File("evaluations/" + id);
+				if(!repo.exists()){
+					repo.mkdir();
+					downloadCollection();
+				}else if(!repo.isDirectory()){
+					System.err.println("The repository is not a directory");
+					repo.delete();
+					repo.mkdir();
+					downloadCollection();
+				}
+				
+				/*
+				 * 4. Run evaluation
+				 */
+			
+				// TODO Start a new thread and run evaluation
+				
+				/*
+				 * 5. Return summary
+				 */
 				
 				return new JsonRepresentation(data);
 			}else
@@ -93,6 +154,9 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 		
 		ex.printStackTrace();
 	} 
-
+	
+	private void downloadCollection(){
+		// TODO Download the test collection
+	}
 	
 }
