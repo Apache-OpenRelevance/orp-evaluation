@@ -1,5 +1,6 @@
 package org.orp.eval.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -63,7 +64,8 @@ public class EvaluationServerResource extends WadlServerResource implements Eval
 		String cmd = params.keySet().iterator().next();
 		if(cmd.equals("re-run")){
 			//Update info
-			List<String> keys = Arrays.asList(new String[]{"collection_id", "scoring_model"});
+			List<String> keys = Arrays.asList(new String[]{
+					"collection_id", "scoring_model", "tester"});
 			Map<String, Object> data = EvaluationUtils.extractValues(
 					(Map<String, Object>)params.get("re-run"), keys);
 			data.put("evaluate_time", EvaluationUtils.dateFormat(new Date(System.currentTimeMillis())));
@@ -86,6 +88,13 @@ public class EvaluationServerResource extends WadlServerResource implements Eval
 		return null;
 	}
 	
+	public Representation remove() 
+			throws SQLException{
+		handler.deleteById("EVALUATION", id);
+		EvaluationUtils.deleteFile(new File("evaluations/" + id + "/"));
+		return EvaluationUtils.message("Evaluation " + id + " has been removed.");
+	}
+	
 	@Override
 	public void doCatch(Throwable ex){
 		Throwable cause = ex.getCause();
@@ -100,5 +109,4 @@ public class EvaluationServerResource extends WadlServerResource implements Eval
 		System.err.println(ex.getClass().getName() + ": " + ex.getMessage());
 		System.err.println(cause.getClass().getName() + ": " + cause.getMessage());
 	}
-
 }

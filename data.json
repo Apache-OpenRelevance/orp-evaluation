@@ -1,6 +1,6 @@
 {
 	"evaluate":{
-		"host_url":"http://localhosT:9090",
+		"host":"http://localhosT:9090",
 		"tester":"dc",
 		"measurement":"p@10",
 		"collection_id":"123"		

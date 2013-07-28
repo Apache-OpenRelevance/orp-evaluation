@@ -49,7 +49,6 @@ public class EvaluationUtils {
 			}else
 				values.put(k, v);
 		}
-			
 		return values;
 	}
 }
