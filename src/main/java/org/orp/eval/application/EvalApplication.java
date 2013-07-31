@@ -24,6 +24,7 @@ public class EvalApplication extends WadlApplication{
 			handler.createTable("CREATE TABLE EVALUATION(" +
 					"ID CHAR(32) PRIMARY KEY NOT NULL," +
 					"HOST VARCHAR(60) NOT NULL," +
+					"MODEL VARCHAR(20) NOT NULL," +
 					"TESTER VARCHAR(20) NOT NULL DEFAULT \'ANONYMOUS\'," +
 					"MEASUREMENT VARCHAR(20) NOT NULL," +
 					"SCORE REAL," +

@@ -42,7 +42,7 @@ public class EvaluationServerResource extends WadlServerResource implements Eval
 			return EvaluationUtils.message("Evaluation " + id + " not found.");
 		}
 		List<String> keys = Arrays.asList(new String[]{
-				"id", "evaluate_time", "host", "collection_id", "corpus", "measurement",
+				"id", "evaluate_time", "host", "model", "collection_id", "corpus", "measurement",
 				"score", "scoring_model"});
 		Map<String, Object> data = EvaluationUtils.extractValues(info, keys);
 		if(data.get("score") == null){

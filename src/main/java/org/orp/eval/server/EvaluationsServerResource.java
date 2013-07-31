@@ -74,7 +74,7 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 				String id = null;
 				
 				//Get wanted values, trim the values and ignore noises
-				List<String> keys = Arrays.asList(new String[]{"host", "tester", "measurement", "collection_id"});
+				List<String> keys = Arrays.asList(new String[]{"host", "tester", "model", "measurement", "collection_id"});
 				Map<String, Object> data = EvaluationUtils.extractValues(
 						(Map<String, Object>)params.get("evaluate"), keys);
 				Map<String, Object> conds = new HashMap<String, Object>();

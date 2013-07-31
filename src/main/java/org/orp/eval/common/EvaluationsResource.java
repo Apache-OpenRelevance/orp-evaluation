@@ -23,7 +23,7 @@ public interface EvaluationsResource {
 		throws SQLException;
 	
 	/**
-	 * @param host URL, test collection ID, measurement, tester's name
+	 * @param host URL, model of search engine, test collection ID, measurement, tester's name
 	 * @return evaluation ID, timestamp, URI, test collection, corpus 
 	 */
 	@Post
