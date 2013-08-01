@@ -1,7 +1,12 @@
 package org.orp.eval.server;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -11,9 +16,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorInputStream;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.json.JSONArray;
+import org.orp.eval.application.EvalApplication;
 import org.orp.eval.common.EvaluationsResource;
 import org.orp.eval.utils.DBHandler;
 import org.orp.eval.utils.DBHandlerImpl;
@@ -62,85 +74,65 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 	}
 	@SuppressWarnings("unchecked")
 	public Representation run(JsonRepresentation entity) 
-			throws JsonParseException, JsonMappingException, IOException, SQLException{
+			throws JsonParseException, JsonMappingException, IOException, SQLException, CompressorException{
 			if(entity == null)
 				return EvaluationUtils.message("No data available.");
 			Map<String, Object> params = JsonUtils.toMap(entity);
-			String cmd = params.keySet().iterator().next();
+			String cmd = params.keySet().iterator().next().toLowerCase();
 			if(cmd.equals("evaluate")){
-				/*
-				 * 1. Check if the evaluation exists
-				 */
+				//1. Check if the evaluation exists
 				String id = null;
 				
 				//Get wanted values, trim the values and ignore noises
 				List<String> keys = Arrays.asList(new String[]{"host", "tester", "model", "measurement", "collection_id"});
 				Map<String, Object> data = EvaluationUtils.extractValues(
 						(Map<String, Object>)params.get("evaluate"), keys);
+				
+				//Determine if the model is supported
+				String model = (String)data.get("model");
+				model = model.toLowerCase();
+				if(!isSupport(model))
+					return EvaluationUtils.message("Currently not support search engine: " + model);
+				
+				//Clean data
+				data.put("model", model);
+				String host = (String)data.get("host");
+				if(host.endsWith("/")) 
+					data.put("host", host.substring(0, host.length() - 1));
+				
+				//2.Check if there is a similar evaluation being done. 
 				Map<String, Object> conds = new HashMap<String, Object>();
 				conds.putAll(data);
 				conds.remove("tester");
 				Set<Map<String, Object>> rs = handler.select("EVALUATION", conds);
-				
-				/*
-				 * 2.Check if there is a similar evaluation being done. 
-				 */
 				if(rs.isEmpty()){
-					/*
-					 * 3(1). If not, parse input data and generate evaluation info and update to DB
-					 */
+				
+					//3(1). If not, parse input data and generate evaluation info and update to DB
 					id = UUID.randomUUID().toString().replaceAll("-", "");
 					// TODO Get corpus info from Collection service.
 					String corpus = "N/A";
-					
-					//Clean data
-					String host = (String)data.get("host");
-					if(host.endsWith("/")) host = host.substring(0, host.length() - 1);
-					
-					data.put("host", host);
 					data.put("id", id);
 					data.put("evaluate_time", EvaluationUtils.dateFormat(new Date(System.currentTimeMillis())));
 					data.put("corpus", corpus);
 					handler.insert("EVALUATION", data);
+					data.put("uri", getRequest().getResourceRef().getIdentifier() + "/" + id);
+	
+					//4. Create repository
+					createRepo(id);
+					
+					//5. Fetch test collection
+					fetchCollection(id, (String)data.get("collection_id"));
+					
+					//6. Run evaluation
+					if(model.equals("solr")) 
+						evalSolr(host, id);
+					
+					//7. Return summary
+					return new JsonRepresentation(data);
 				}else{
-					/*
-					 * 3(2). If yes, re-run the evaluation as nothing is changed.
-					 */
-					String tester = (String)data.get("tester");
-					data = rs.iterator().next();
-					data.put("tester", tester);
-					data.put("evaluate_time", EvaluationUtils.dateFormat(new Date(System.currentTimeMillis())));
-					id = (String)data.get("id");
-					handler.updateById("EVALUATION", data, id);
+					id = (String)rs.iterator().next().get("id");
+					return EvaluationUtils.message("The new evaluation is similar with " + id);
 				}
-				
-				data.put("uri", getRequest().getResourceRef().getIdentifier() + "/" + id);
-
-				/*
-				 * 3. Create repository
-				 */
-				File repo = new File("evaluations/" + id);
-				if(!repo.exists()){
-					repo.mkdir();
-					downloadCollection();
-				}else if(!repo.isDirectory()){
-					System.err.println("The repository is not a directory");
-					repo.delete();
-					repo.mkdir();
-					downloadCollection();
-				}
-				
-				/*
-				 * 4. Run evaluation
-				 */
-			
-				// TODO Start a new thread and run evaluation
-				
-				/*
-				 * 5. Return summary
-				 */
-				
-				return new JsonRepresentation(data);
 			}else
 				return EvaluationUtils.message("Invalid Commands");
 	}
@@ -169,8 +161,80 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 		ex.printStackTrace();
 	} 
 	
-	private void downloadCollection(){
-		// TODO Download the test collection
+	private boolean isSupport(String model){
+		if(model.equals("solr")) return true;
+		return false;
+	}
+	
+	private void fetchCollection(String eid, String cid) 
+			throws HttpException, IOException, CompressorException{
+		String repo = "evaluations/" + eid;
+		String colUri = EvalApplication.COLLECTION_HOST + "/" + cid;
+		String topics = repo + "/topics.xml";
+		String qrels = repo + "/qrels.txt";
+		
+		fetchCompressedFile(colUri + "/topics", topics);
+		fetchCompressedFile(colUri + "/qrels", qrels);
+		
+		
+	}
+	
+	private void createRepo(String id){
+		File repo = new File("evaluations/" + id);
+		if(!repo.exists()){
+			repo.mkdir();
+		}else if(!repo.isDirectory()){
+			System.err.println("The repository is not a directory");
+			repo.delete();
+			repo.mkdir();
+		}
+	}
+	
+	private void fetchFile(String uri, String localDir) 
+			throws HttpException, IOException{
+		GetMethod get = new GetMethod(uri);
+		new HttpClient().executeMethod(get);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		byte[] arr = new byte[1024];
+		int count = 0;
+		while((count = get.getResponseBodyAsStream()
+				.read(arr, 0, arr.length)) > 0)
+			os.write(arr, 0, count);
+		FileOutputStream fs = new FileOutputStream(localDir);
+		fs.write(os.toByteArray());
+		fs.flush();
+		fs.close();
+	}	
+	
+	private void fetchCompressedFile(String uri, String localDir) 
+			throws HttpException, IOException, CompressorException{
+		// TODO Lots of validation to be done
+		GetMethod get = new GetMethod(uri);
+		new HttpClient().executeMethod(get);
+		CompressorInputStream in = new CompressorStreamFactory()
+			.createCompressorInputStream("gz", new BufferedInputStream(get.getResponseBodyAsStream()));
+		OutputStream out = new BufferedOutputStream(new FileOutputStream(localDir));
+		
+		int read = 0;
+		byte[] bytes = new byte[1024];
+		while((read = in.read(bytes)) != -1)
+			out.write(bytes, 0, read);
+		in.close();
+		out.close();
+	}
+	
+	private void evalSolr(String host, String id) 
+			throws HttpException, IOException{
+		//Run evaluation
+			// TODO Start a new thread and run evaluation
+
+		//Get files
+		fetchFile(host + "/admin/file/?charset=utf-8&file=schema.xml", 
+				"evaluations/" + id + "/schema.xml");
+		fetchFile(host + "/admin/file/?charset=utf-8&file=solrconfig.xml",
+				"evaluations/" + id + "/config.xml");
+		fetchFile(host + "/admin/file/?charset=utf-8&file=stopwords.txt",
+				"evaluations/" + id + "/stopwords.txt");
 	}
 	
 }

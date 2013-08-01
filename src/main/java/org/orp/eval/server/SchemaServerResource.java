@@ -1,19 +1,19 @@
 package org.orp.eval.server;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Map;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.orp.eval.common.SchemaResource;
 import org.orp.eval.utils.DBHandler;
 import org.orp.eval.utils.DBHandlerImpl;
 import org.orp.eval.utils.EvaluationUtils;
+import org.restlet.data.MediaType;
 import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.ext.wadl.WadlServerResource;
+import org.restlet.ext.xml.SaxRepresentation;
+import org.restlet.representation.FileRepresentation;
 import org.restlet.representation.Representation;
 
 
@@ -21,22 +21,28 @@ public class SchemaServerResource extends WadlServerResource implements SchemaRe
 
 	private DBHandler handler;
 	private String id;
+	private File schema;
 	
 	@Override
 	public void doInit(){
 		handler = DBHandlerImpl.newHandler("jdbc:sqlite:db/evaluation.db");
 		id = getRequest().getResourceRef().getIdentifier().split("/")[4];
+		schema = new File("evaluations/" + id + "/schema.xml");
+		
 	}
 	
 	public Representation present() 
 			throws SQLException, HttpException, IOException {
-		Map<String, Object> info = handler.selectAllById("EVALUATION", id);
-		String host = (String)info.get("host");
-		host += "/admin/file/?charset=utf-8&file=schema.xml";
-		String schema = getResponse(host);
-		if(schema == null)
-			return EvaluationUtils.message("No schema return. Please check your host URL.");
-		return new JsonRepresentation(schema);
+		String model = (String)handler.selectAllById("EVALUATION", id).get("model");
+		if(model.equals("solr")){
+			if(!schema.exists())
+				return EvaluationUtils.message("No schema found.");
+			if(!schema.isFile())
+				return EvaluationUtils.message("Problematic file");
+			return new SaxRepresentation(new FileRepresentation(schema, MediaType.APPLICATION_XML));
+		}
+		
+		return EvaluationUtils.message("Currently no schema available for this the search engine model: " + model);
 	}
 
 	public Representation execute(JsonRepresentation entity) {
@@ -59,18 +65,5 @@ public class SchemaServerResource extends WadlServerResource implements SchemaRe
 			System.out.println(cause.getClass().getName() + ": " + cause.getMessage());
 		
 		ex.printStackTrace();
-	}
-
-	private String getResponse(String url) 
-			throws HttpException, IOException{
-		GetMethod get = new GetMethod(url);
-		new HttpClient().executeMethod(get);
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		byte[] arr = new byte[1024];
-		int count = 0;
-		while((count = get.getResponseBodyAsStream()
-				.read(arr, 0, arr.length)) > 0)
-			os.write(arr, 0, count);
-		return new String(os.toByteArray(), "UTF-8");
 	}
 }

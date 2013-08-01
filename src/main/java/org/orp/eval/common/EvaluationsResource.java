@@ -3,6 +3,7 @@ package org.orp.eval.common;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import org.apache.commons.compress.compressors.CompressorException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.restlet.ext.json.JsonRepresentation;
@@ -28,5 +29,5 @@ public interface EvaluationsResource {
 	 */
 	@Post
 	public Representation run(JsonRepresentation entity) 
-			throws JsonParseException, JsonMappingException, IOException, SQLException;
+			throws JsonParseException, JsonMappingException, IOException, SQLException, CompressorException;
 }
