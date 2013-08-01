@@ -1,7 +1,8 @@
 {
 	"evaluate":{
-		"host":"http://localhosT:9090",
+		"host":"http://localhost:9090",
 		"tester":"dc",
+		"model":"solr",
 		"measurement":"p@10",
 		"collection_id":"123"		
 	}

@@ -96,6 +96,15 @@ public class EvaluationServerResource extends WadlServerResource implements Eval
 	}
 	
 	@Override
+	public void doRelease(){
+		try {
+			handler.clean();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
 	public void doCatch(Throwable ex){
 		Throwable cause = ex.getCause();
 		if(cause instanceof JsonParseException)
