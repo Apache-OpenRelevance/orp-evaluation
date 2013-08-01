@@ -1,6 +1,6 @@
 {
 	"evaluate":{
-		"host":"http://localhost:9090",
+		"host":"http://152.54.6.202:9090/",
 		"tester":"dc",
 		"model":"solr",
 		"measurement":"p@10",

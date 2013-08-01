@@ -93,6 +93,11 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 					// TODO Get corpus info from Collection service.
 					String corpus = "N/A";
 					
+					//Clean data
+					String host = (String)data.get("host");
+					if(host.endsWith("/")) host = host.substring(0, host.length() - 1);
+					
+					data.put("host", host);
 					data.put("id", id);
 					data.put("evaluate_time", EvaluationUtils.dateFormat(new Date(System.currentTimeMillis())));
 					data.put("corpus", corpus);

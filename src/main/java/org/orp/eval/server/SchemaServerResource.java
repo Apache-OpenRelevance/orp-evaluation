@@ -32,7 +32,7 @@ public class SchemaServerResource extends WadlServerResource implements SchemaRe
 			throws SQLException, HttpException, IOException {
 		Map<String, Object> info = handler.selectAllById("EVALUATION", id);
 		String host = (String)info.get("host");
-		host += "/solr/schema";
+		host += "/admin/file/?charset=utf-8&file=schema.xml";
 		String schema = getResponse(host);
 		if(schema == null)
 			return EvaluationUtils.message("No schema return. Please check your host URL.");
