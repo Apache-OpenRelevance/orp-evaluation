@@ -50,7 +50,15 @@ public class SchemaServerResource extends WadlServerResource implements SchemaRe
 	
 	@Override
 	public void doCatch(Throwable ex){
+		Throwable cause = ex.getCause();
+		if(cause instanceof SQLException)
+			System.out.println(cause.getClass().getName() + ": " + cause.getMessage());
+		if(cause instanceof HttpException)
+			System.out.println(cause.getClass().getName() + ": " + cause.getMessage());
+		if(cause instanceof IOException)
+			System.out.println(cause.getClass().getName() + ": " + cause.getMessage());
 		
+		ex.printStackTrace();
 	}
 
 	private String getResponse(String url) 
