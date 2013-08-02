@@ -25,8 +25,9 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.json.JSONArray;
-import org.orp.eval.application.EvalApplication;
 import org.orp.eval.common.EvaluationsResource;
+import org.orp.eval.config.EvalConfig;
+import org.orp.eval.solr.SolrEval;
 import org.orp.eval.utils.DBHandler;
 import org.orp.eval.utils.DBHandlerImpl;
 import org.orp.eval.utils.EvaluationUtils;
@@ -124,8 +125,10 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 					fetchCollection(id, (String)data.get("collection_id"));
 					
 					//6. Run evaluation
-					if(model.equals("solr")) 
-						evalSolr(host, id);
+					if(model.equals("solr")){
+						SolrEval solr = new SolrEval(host, id);
+						solr.eval();
+					}
 					
 					//7. Return summary
 					return new JsonRepresentation(data);
@@ -169,7 +172,7 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 	private void fetchCollection(String eid, String cid) 
 			throws HttpException, IOException, CompressorException{
 		String repo = "evaluations/" + eid;
-		String colUri = EvalApplication.COLLECTION_HOST + "/" + cid;
+		String colUri = EvalConfig.COLLECTION_HOST + "/" + cid;
 		String topics = repo + "/topics.xml";
 		String qrels = repo + "/qrels.txt";
 		
@@ -190,21 +193,7 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 		}
 	}
 	
-	private void fetchFile(String uri, String localDir) 
-			throws HttpException, IOException{
-		GetMethod get = new GetMethod(uri);
-		new HttpClient().executeMethod(get);
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		byte[] arr = new byte[1024];
-		int count = 0;
-		while((count = get.getResponseBodyAsStream()
-				.read(arr, 0, arr.length)) > 0)
-			os.write(arr, 0, count);
-		FileOutputStream fs = new FileOutputStream(localDir);
-		fs.write(os.toByteArray());
-		fs.flush();
-		fs.close();
-	}	
+		
 	
 	private void fetchCompressedFile(String uri, String localDir) 
 			throws HttpException, IOException, CompressorException{
@@ -223,18 +212,6 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 		out.close();
 	}
 	
-	private void evalSolr(String host, String id) 
-			throws HttpException, IOException{
-		//Run evaluation
-			// TODO Start a new thread and run evaluation
-
-		//Get files
-		fetchFile(host + "/admin/file/?charset=utf-8&file=schema.xml", 
-				"evaluations/" + id + "/schema.xml");
-		fetchFile(host + "/admin/file/?charset=utf-8&file=solrconfig.xml",
-				"evaluations/" + id + "/config.xml");
-		fetchFile(host + "/admin/file/?charset=utf-8&file=stopwords.txt",
-				"evaluations/" + id + "/stopwords.txt");
-	}
+	
 	
 }

@@ -1,11 +1,17 @@
 package org.orp.eval.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.restlet.ext.json.JsonRepresentation;
 
 public class EvaluationUtils {
@@ -50,5 +56,21 @@ public class EvaluationUtils {
 				values.put(k, v);
 		}
 		return values;
+	}
+	
+	public static void fetchFile(String uri, String localDir) 
+			throws HttpException, IOException{
+		GetMethod get = new GetMethod(uri);
+		new HttpClient().executeMethod(get);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		byte[] arr = new byte[1024];
+		int count = 0;
+		while((count = get.getResponseBodyAsStream()
+				.read(arr, 0, arr.length)) > 0)
+			os.write(arr, 0, count);
+		FileOutputStream fs = new FileOutputStream(localDir);
+		fs.write(os.toByteArray());
+		fs.flush();
+		fs.close();
 	}
 }

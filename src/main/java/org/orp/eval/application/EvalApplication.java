@@ -16,7 +16,6 @@ import org.restlet.routing.Router;
 
 
 public class EvalApplication extends WadlApplication{
-	public static final String COLLECTION_HOST = "http://localhost:8111";
 	public EvalApplication() throws SQLException{
 		DBHandler handler = DBHandlerImpl.newHandler(
 				"jdbc:sqlite:db/evaluation.db");
