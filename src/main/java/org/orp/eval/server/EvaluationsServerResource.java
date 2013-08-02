@@ -2,7 +2,6 @@ package org.orp.eval.server;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,7 +26,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.json.JSONArray;
 import org.orp.eval.common.EvaluationsResource;
 import org.orp.eval.config.EvalConfig;
-import org.orp.eval.solr.SolrEval;
+import org.orp.eval.solr.SolrEvaluation;
 import org.orp.eval.utils.DBHandler;
 import org.orp.eval.utils.DBHandlerImpl;
 import org.orp.eval.utils.EvaluationUtils;
@@ -90,8 +89,7 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 						(Map<String, Object>)params.get("evaluate"), keys);
 				
 				//Determine if the model is supported
-				String model = (String)data.get("model");
-				model = model.toLowerCase();
+				String model = String.valueOf(data.get("model")).toLowerCase();
 				if(!isSupport(model))
 					return EvaluationUtils.message("Currently not support search engine: " + model);
 				
@@ -126,7 +124,7 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 					
 					//6. Run evaluation
 					if(model.equals("solr")){
-						SolrEval solr = new SolrEval(host, id);
+						SolrEvaluation solr = new SolrEvaluation(host, id);
 						solr.eval();
 					}
 					
@@ -172,8 +170,8 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 	private void fetchCollection(String eid, String cid) 
 			throws HttpException, IOException, CompressorException{
 		String repo = "evaluations/" + eid;
-		String colUri = EvalConfig.COLLECTION_HOST + "/" + cid;
-		String topics = repo + "/topics.xml";
+		String colUri = EvalConfig.COLLECTION_HOST_URI + "/" + cid;
+		String topics = repo + "/topics.txt";
 		String qrels = repo + "/qrels.txt";
 		
 		fetchCompressedFile(colUri + "/topics", topics);
