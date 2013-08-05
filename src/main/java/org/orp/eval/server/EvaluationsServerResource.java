@@ -124,6 +124,7 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 					
 					//6. Run evaluation
 					if(model.equals("solr")){
+						createScoreRepo(id);
 						SolrEvaluation solr = new SolrEvaluation(host, id);
 						solr.eval();
 					}
@@ -191,7 +192,43 @@ public class EvaluationsServerResource extends WadlServerResource implements Eva
 		}
 	}
 	
-		
+	private void createScoreRepo(String id) 
+			throws SQLException{
+		DBHandler h = DBHandlerImpl.newHandler("jdbc:sqlite:evaluations/" + id + "/stat.db");
+		h.createTable("CREATE TABLE SCORES("
+				+ "TOPIC_NO VARCHAR(5) PRIMARY KEY NOT NULL,"
+				+ "NUM_RET INT,"
+				+ "NUM_REL INT,"
+				+ "NUM_REL_RET INT,"
+				+ "NUM_Q REAL,"
+				+ "MAP REAL,"
+				+ "R_PREC REAL,"
+				+ "BPREF REAL,"
+				+ "GM_AP REAL,"
+				+ "RECIP_RANK REAL,"
+				+ "IRCL_PRN_0_00 REAL,"
+				+ "IRCL_PRN_0_10 REAL,"
+				+ "IRCL_PRN_0_20 REAL,"
+				+ "IRCL_PRN_0_30 REAL,"
+				+ "IRCL_PRN_0_40 REAL,"
+				+ "IRCL_PRN_0_50 REAL,"
+				+ "IRCL_PRN_0_60 REAL,"
+				+ "IRCL_PRN_0_70 REAL,"
+				+ "IRCL_PRN_0_80 REAL,"
+				+ "IRCL_PRN_0_90 REAL,"
+				+ "IRCL_PRN_1_00 REAL,"
+				+ "P5 REAL,"
+				+ "P10 REAL,"
+				+ "P15 REAL,"
+				+ "P20 REAL,"
+				+ "P30 REAL,"
+				+ "P100 REAL,"
+				+ "P200 REAL,"
+				+ "P500 REAL,"
+				+ "P1000 REAL)");
+		handler.clean();
+	}
+	
 	
 	private void fetchCompressedFile(String uri, String localDir) 
 			throws HttpException, IOException, CompressorException{

@@ -4,18 +4,27 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.orp.eval.utils.DBHandler;
 
 public class TrecEvaluator {
 	private String qrels;
 	private String results;
+	private DBHandler handler;
 	
-	public TrecEvaluator(String pathToQrels, String pathToResults){
+	public TrecEvaluator(String pathToQrels, String pathToResults, DBHandler handler){
 		qrels = pathToQrels;
 		results = pathToResults;
+		this.handler = handler;
 	}
 	
-	public String evaluateAll() 
-			throws IOException, InterruptedException{
+	public Set<Map<String, Object>> evaluateAll() 
+			throws IOException, InterruptedException, SQLException{
 		String trecEval = findTrecEval();
 		if(trecEval.isEmpty())
 			throw new RuntimeException("No trec_eval installation found!");
@@ -23,39 +32,25 @@ public class TrecEvaluator {
 			Process p = Runtime.getRuntime().exec(trecEval + " -q " + qrels + " " + results);
 			p.waitFor();
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			StringBuilder r = new StringBuilder();
+			Set<Map<String, Object>> result = new HashSet<Map<String, Object>>();
+			Map<String, Object> row = new HashMap<String, Object>();
+			int count = 0;
 			while(br.ready()){
 				String line = br.readLine();
-				r.append(line + "\n");
-//				String[] fields = line.split("[ \t]+");
-//				r.append(fields[0] + ": " + fields[2] + "\n");
+				String[] field = line.split("[ \t]+");
+				if(count == 0) row.put("topic_no", field[1]);
+				row.put(field[0].toLowerCase().replaceAll("[-.]+", "_"), field[2]);
+				count ++;
+				if(count == 27){
+					result.add(row);
+					handler.insert("SCORES", row);
+					count = 0;
+					row = new HashMap<String, Object>();
+				}
 			}
-			results = r.toString();
-
+			
 			br.close();
-			return results;
-		}
-	}
-	
-	public String evaluateQuery(int tid) 
-			throws IOException, InterruptedException{
-		String trecEval = findTrecEval();
-		if(trecEval.isEmpty())
-			throw new RuntimeException("No trec_eval installation found!");
-		else{
-			Process p = Runtime.getRuntime().exec(trecEval + " -q " + qrels + " " + results);
-			p.waitFor();
-			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			StringBuilder r = new StringBuilder();
-			while(br.ready()){
-				String line = br.readLine();
-				String[] fields = line.split("[ \t]+");
-				if(fields[1].equals(String.valueOf(tid)))
-					r.append(fields[0] +  ": " + fields[2] + "\n");
-			}
-			results = r.toString();
-			br.close();
-			return results;
+			return result;
 		}
 	}
 	

@@ -31,7 +31,7 @@ public class EvaluationServerResource extends WadlServerResource implements Eval
 	public void doInit(){
 		handler = DBHandlerImpl.newHandler("jdbc:sqlite:db/evaluation.db");
 		prefix = getRequest().getResourceRef().getIdentifier();
-		id = prefix.replaceAll(".*//.*/evaluations/", "");
+		id = prefix.split("/")[4];
 	}
 	
 	public Representation present() 

@@ -66,8 +66,9 @@ public class DBHandlerImpl implements DBHandler{
 	
 	public Map<String, Object> selectAllById(String tabName, String id) 
 			throws SQLException{
+		String pk = c.getMetaData().getPrimaryKeys(null, null, tabName).getString(4);
 		Map<String, Object> cond = new HashMap<String, Object>();
-		cond.put("id", id);
+		cond.put(pk, id);
 		Map<String, Object> result = null;
 		for(Map<String,Object> key : select(tabName, cond))
 			result = key;

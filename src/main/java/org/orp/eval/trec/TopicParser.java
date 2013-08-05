@@ -16,6 +16,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import org.orp.eval.utils.DocParseUtils;
+
 
 public class TopicParser {
 
@@ -35,7 +37,7 @@ public TopicParser(String path){
 				topMap.put((Integer)t.get("id"), t);
 			}
 		}else if(topFile.isFile()){
-			List<String> topList = ParseUtils.splitDocuments(topFile, "top");
+			List<String> topList = DocParseUtils.splitDocuments(topFile, "top");
 			for(String top : topList){
 				Map<String, Object> t = getTopic(new ByteArrayInputStream(top.getBytes("UTF-8")));
 				topMap.put((Integer)t.get("id"), t);

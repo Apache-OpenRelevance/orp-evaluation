@@ -1,4 +1,4 @@
-package org.orp.eval.trec;
+package org.orp.eval.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ParseUtils {
+public class DocParseUtils {
 
 	public static List<String> splitDocuments(File file, String rootName)
 			throws IOException{

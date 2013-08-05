@@ -1,6 +1,7 @@
 package org.orp.eval.common;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -16,7 +17,7 @@ public interface ResultResource {
 	 * @return score by required measurement and scoring model.
 	 */
 	@Get
-	public Representation summary();
+	public Representation summary() throws SQLException;
 	
 	/**
 	 * 
@@ -29,9 +30,10 @@ public interface ResultResource {
 	 * @return 
 	 * 1.score: timestamp, score, scoring model, measurement
 	 * 2.download: report file
+	 * @throws SQLException 
 	 */
 	@Post
 	public Representation execute(JsonRepresentation entity)
-		throws JsonParseException, JsonMappingException, IOException;
+		throws JsonParseException, JsonMappingException, IOException, SQLException;
 	
 }
